@@ -9,9 +9,6 @@ import org.springframework.web.servlet.AsyncHandlerInterceptor;
 public class LogInterceptor implements AsyncHandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-        log.info("url : {}", request.getRequestURL());
-        log.info("request : {} response : {}", request.getMethod(), request.getRequestURL());
-
-        return AsyncHandlerInterceptor.super.preHandle(request, response, handler);
+                return AsyncHandlerInterceptor.super.preHandle(request, response, handler);
     }
 }
