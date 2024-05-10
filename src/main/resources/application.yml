@@ -1,2 +1,11 @@
 redis:
   port: 6370
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  health:
+    redis:
+      enabled: false

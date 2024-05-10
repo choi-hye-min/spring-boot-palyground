@@ -11,10 +11,13 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
+import org.springframework.http.server.PathContainer;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StreamUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.util.ContentCachingResponseWrapper;
+import org.springframework.web.util.pattern.PathPattern;
+import org.springframework.web.util.pattern.PathPatternParser;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -40,10 +43,13 @@ public class MDCFilter extends OncePerRequestFilter {
             ContentCachingResponseWrapper contentCachingResponseWrapper = new ContentCachingResponseWrapper(response);
             filterChain.doFilter(servletRequest, contentCachingResponseWrapper);
 
-            String responseBody = new ObjectMapper().readTree(contentCachingResponseWrapper.getContentAsByteArray()).toString();
-            threadLocalDataInfoContext.setData(new ReqResData(messageBody, responseBody));
+            PathPattern parse = PathPatternParser.defaultInstance.parse("/actuator/**");
+            if (!parse.matches(PathContainer.parsePath(request.getRequestURI()))) {
+                String responseBody = new ObjectMapper().readTree(contentCachingResponseWrapper.getContentAsByteArray()).toString();
+                threadLocalDataInfoContext.setData(new ReqResData(messageBody, responseBody));
+                log.info("[{}] URI: {}, queryString: {}, requestBody: {}, responseBody: {}", traceId, servletRequest.getRequestURI(), servletRequest.getQueryString(), messageBody, responseBody);
+            }
 
-            log.info("[{}] URI: {}, queryString: {}, requestBody: {}, responseBody: {}", traceId, servletRequest.getRequestURI(), servletRequest.getQueryString(), messageBody, responseBody);
             contentCachingResponseWrapper.copyBodyToResponse();
         } finally {
             MDC.clear();
